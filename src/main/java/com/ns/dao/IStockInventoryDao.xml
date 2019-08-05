@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IStockInventoryDao">
+  		<select id="QueryCommodity" resultMap="SelectCommodity">
+  			select * from t_goods limit #{start},#{rows}
+  		</select>
+  		<resultMap type="Goods" id="SelectCommodity">
+  			<id column="id" property="id"/>
+  			<result column="code" property="code"/>
+  			<result column="name" property="name"/>
+  			<result column="model" property="model"/>
+  			<result column="unit" property="unit"/>
+  			<result column="purchasing_price" property="purchasingPrice"/>
+  			<result column="selling_price" property="sellingPrice"/>
+  			<result column="inventory_quantity" property="inventoryQuantity"/>
+  			<result column="min_num" property="minNum"/>
+  			<result column="state" property="state"/>
+  			<result column="producer" property="producer"/>
+  			<result column="remarks" property="remarks"/>
+  			<result column="last_purchasing_price" property="lastPurchasingPrice"/>
+  			<association property="type" javaType="GoodsType" select="SelectType" column="type_id"></association>
+  		</resultMap>	 					
+  		<select id="SelectType" resultType="GoodsType">
+  			select * from t_goodstype where id=#{type_id}
+  		</select>		
+  								 
+  		<select id="QueryStockTotal" resultType="long">
+  			select count(id) from t_goods
+  		</select>
+  		
+  		<select id="QuerySupplier" resultType="Supplier">
+  			select * from t_supplier
+  		</select>
+  		
+  		
+  		<select id="QueryGoodsWithparametersTotal" resultType="long">
+  			select count(id) from t_goods where
+  			<if test="id==1">
+  				1=1
+  			</if>
+  			<if test="id!=1">
+  				 type_id=#{id}
+  			</if>
+  			
+  		</select>
+  		<select id="QueryGoodsWithparameters" resultMap="SelectCommodity">
+  			select * from t_goods where
+  			<if test="goodsType.id==1">
+  				1=1
+  			</if>
+  			<if test="goodsType.id!=1">
+  				 type_id=#{goodsType.id}
+  			</if>
+  			limit #{page.start},#{page.rows}
+  		</select>  		
+  		
+  		
+  		<insert id="AddGoodsType">
+  			insert into t_goodstype (name,p_id,state,icon) values (#{name},#{pId},#{state},#{icon})
+  			<selectKey resultType="int" keyProperty="id" order="AFTER"> 
+		         SELECT @@identity;
+		    </selectKey>
+  		</insert>
+  		
+  		<update id="SetParentNode">
+  			UPDATE t_goodstype SET state=#{state} where id=#{pId}
+  		</update>
+  		
+  		<update id="EmptyModifier">
+  			UPDATE t_goods SET type_id=null where type_id=#{id}
+  		</update>
+  		
+  		<delete id="DeleteGoodsType">
+  			DELETE FROM t_goodstype WHERE id=#{id}
+  		</delete>
+  		
+  		<select id="queryParamsWithCoderOrNameTotal" resultType="long">  	   	 
+  			select count(id) from t_goods where `code`=#{codeOrName} OR `name` LIKE '%' #{codeOrName} '%'
+  		</select>
+  		
+  		
+  		<select id="queryParamsWithCoderOrName" resultMap="SelectCommodity">
+  			select * from t_goods
+  			<where>
+  				<if test="goods.codeOrName!=null">
+  					`code`=#{goods.codeOrName} OR `name` LIKE '%' #{goods.codeOrName} '%'
+  				</if>
+  			</where>
+  			limit #{page.start},#{page.rows}
+  		</select>
+  		
+  		
+  		<select id="queryGooodsWithId" resultMap="SelectCommodity">
+  			select * from t_goods where id=#{id}
+  		</select>
+  		
+  		<insert id="PutInStorageList">
+  			insert into t_purchase_list (amount_paid,amount_payable,purchase_date,remarks,state,purchase_number,supplier_id,user_id)
+  				values (#{amountPaid},#{amountPayable},#{purchaseDate},#{remarks},#{state},#{purchaseNumber},#{supplier.id},#{user.id})
+			<selectKey resultType="int" keyProperty="id" order="AFTER"> 
+		         SELECT @@identity;
+		    </selectKey>
+  		</insert>
+  		
+  		
+  		<insert id="PutInStorageListGoods">
+  			insert into t_purchase_list_goods (code,model,name,num,price,total,unit,purchase_list_id,type_id,goods_id) values
+  				(#{code},#{model},#{name},#{num},#{price},#{total},#{unit},#{purchaseList.id},#{typeId},#{goodsId})
+  		</insert>
+  		
+  		
+  		<select id="QueryGoods" resultMap="SelectGoods">
+  			select * from t_goods where id=#{id}
+  		</select>
+  		<resultMap type="Goods" id="SelectGoods">
+  			<id column="id" property="id"/>
+  			<result column="code" property="code"/>
+  			<result column="name" property="name"/>
+  			<result column="model" property="model"/>
+  			<result column="unit" property="unit"/>
+  			<result column="purchasing_price" property="purchasingPrice"/>
+  			<result column="selling_price" property="sellingPrice"/>
+  			<result column="inventory_quantity" property="inventoryQuantity"/>
+  			<result column="min_num" property="minNum"/>
+  			<result column="state" property="state"/>
+  			<result column="producer" property="producer"/>
+  			<result column="remarks" property="remarks"/>
+  			<result column="last_purchasing_price" property="lastPurchasingPrice"/>
+  			<association property="type" javaType="GoodsType" select="SelectType" column="type_id"></association>
+  		</resultMap>	 					
+
+  		<update id="UpdateGoods">
+  			update t_goods set inventory_quantity=#{inventoryQuantity},purchasing_price=#{purchasingPrice},last_purchasing_price=#{lastPurchasingPrice},state=#{state} where id=#{id}
+  			<!-- inventory_quantity,purchasing_price,last_purchasing_price) -->
+  		</update>
+  		
+  		
+  		
+  		
+  	</mapper>

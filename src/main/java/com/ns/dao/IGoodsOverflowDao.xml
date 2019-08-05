@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IGoodsOverflowDao">
+		<insert id="SaveOverflowBill">
+			insert into t_overflow_list (overflow_date,overflow_number,remarks,user_id) values (#{overflowDate},#{overflowNumber},#{remarks},#{user.id})
+			<selectKey resultType="int" keyProperty="id" order="AFTER"> 
+		         SELECT @@identity;
+		    </selectKey>
+		</insert>
+		<insert id="SaveOverflowListGoods">
+			insert into t_overflow_list_goods (code,model,name,num,price,total,unit,overflow_list_id,type_id,goods_id) values
+									(#{code},#{model},#{name},#{num},#{price},#{total},#{unit},#{overflowList.id},#{typeId},#{goodsId})	
+		</insert>
+		
+		<update id="UpdateInventoryQuantity">
+			UPDATE t_goods SET inventory_quantity=#{inventoryQuantity},state=#{state} where id=#{id}
+		</update>
+		
+		
+		
+		<!-- 库存报警 -->
+		<select id="QueryAlarmGoods" resultMap="SelectAlarmGoodsMapper">
+			SELECT * FROM t_goods WHERE inventory_quantity &lt; min_num
+		</select>
+		
+		<resultMap type="Goods" id="SelectAlarmGoodsMapper">
+  			<id column="id" property="id"/>
+  			<result column="code" property="code"/>
+  			<result column="name" property="name"/>
+  			<result column="model" property="model"/>
+  			<result column="unit" property="unit"/>
+  			<result column="purchasing_price" property="purchasingPrice"/>
+  			<result column="selling_price" property="sellingPrice"/>
+  			<result column="inventory_quantity" property="inventoryQuantity"/>
+  			<result column="min_num" property="minNum"/>
+  			<result column="state" property="state"/>
+  			<result column="producer" property="producer"/>
+  			<result column="remarks" property="remarks"/>
+  			<result column="last_purchasing_price" property="lastPurchasingPrice"/>
+  			<association property="type" javaType="GoodsType" select="SelectType" column="type_id"></association>
+  		</resultMap>	 					
+  		<select id="SelectType" resultType="GoodsType">
+  			select * from t_goodstype where id=#{type_id}
+  		</select>	
+  		
+  		
+  		<select id="QueryOverflow" resultMap="SelectOverflowMapper">
+  			select * from t_overflow_list where overflow_date BETWEEN #{bOverflowDate} AND #{eOverflowDate}
+ 		</select>
+  		<resultMap type="OverflowList" id="SelectOverflowMapper">
+  			<id column="id" property="id"/>
+  			<result column="overflow_number" property="overflowNumber" />
+  			<result column="overflow_date" property="overflowDate" />
+  			<result column="remarks" property="remarks" />
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<collection property="overflowListGoods" ofType="OverflowListGoods" select="SelectOverflowListGoods" column="id" />
+  		</resultMap>
+  		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectOverflowListGoods" resultType="OverflowListGoods">
+  			select * from t_overflow_list_goods where overflow_list_id=#{id}
+  		</select>
+  	</mapper>
+  	
+  	
+  	
+  	
+  	
+  	
+  	

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>后台管理-进销存管理系统</title>
+<link rel="stylesheet" type="text/css"
+	href="static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css"
+	href="static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<style type="text/css">
+.clock {
+	float: right;
+	width: 300px;
+	height: 30px;
+	padding-left: 20px;
+	color: rgb(0, 76, 126);
+	background: url(static/images/clock.gif) no-repeat;
+	font-size: 14px;
+}
+
+.userInfo {
+	float: left;
+	padding-left: 20px;
+	padding-top: 30px;
+}
+</style>
+
+<script type="text/javascript"
+	src="static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript"
+	src="static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript"
+	src="static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="js/projectUtil.js"></script>
+
+
+<script type="text/javascript">
+
+	var url;
+
+	function showTime() {
+		var date = new Date();
+		this.year = date.getFullYear();
+		this.month = date.getMonth() + 1;
+		this.date = date.getDate();
+		this.day = new Array("星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六")[date.getDay()];
+		this.hour = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+		this.minute = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+		this.second = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+		$("#clock").text("现在是:" + this.year + "年" + this.month + "月" + this.date + "日 " + this.hour + ":" + this.minute + ":" + this.second + " " + this.day);
+	}
+
+	window.setInterval("showTime()", 1000);
+	
+	
+	
+		
+		//保存修改密码
+		function modifyPassword(){
+			var newpassword = $("#newPassword").val()
+			var newpassword2 = $("#newPassword2").val()
+			if(newpassword!=newpassword2){
+				$.messager.alert('提示','两次密码输入不一致','info')
+				return false;
+			}
+			$.get(projectName+"/SystemOperation/modifyPassword",{"password":newpassword},function(data){
+				if(data&&data.success){
+					$.messager.alert('提示',data.msg,'info');
+					window.location.href=projectName+"/login.html";	
+				}
+			})
+			
+		}
+		
+		//关闭修改密码Dialog
+		function closePasswordModifyDialog(){
+			resetValue();
+			$("#dlg").dialog({closed:true})
+		}
+		
+		function resetValue(){
+			 $("#newPassword").val("")
+			 $("#newPassword2").val("")
+		}
+		
+	
+	
+	$(function() {
+	/*  setTimeout(function(){
+	 	
+    },1000); */
+
+	var content="<iframe frameborder=0 scrolling='auto' style='width:100%;height:99%' src='common/stockSearch.html'></iframe>";
+		$("#tabs").tabs("add",{
+			title:"首页",
+			iconCls:"menu-25",
+			closable:false,
+			content:content
+		});
+
+		$.ajax({
+			type : 'post',
+			url : projectName + '/QueryUser',
+			success : function(result) {
+				console.info(result);
+				if (result&&result.json.success) {
+					$("#tree").tree({
+						url : projectName + '/QueryTree',
+						lines : true,
+						dnd : true,
+						onClick :function(node){
+							if(node){
+								openTbas(node);
+							}
+						},
+						onLoadSuccess:function(){
+							$("#tree").tree('expandAll');
+						},
+					});
+				} else {
+					$.messager.show({title:'提示',msg:result.json.msg});
+					chooseRole(result.uR); //选择角色
+				}
+			},
+			error : function() {
+				alert("error")
+			},
+		});
+		
+
+		function openTbas(node){
+			console.info(node); 	
+			var flag = $("#tree").tree('isLeaf',node.target)
+			if(!flag){
+				return false;
+			}
+			if(node.text=="修改密码"){
+				$("#dlg").dialog({title:'修改密码',closed:false})
+				return false;
+			}
+			if(node.text=="安全退出"){
+				$.get(projectName+"/SystemOperation/LogOut",function(data){
+					if(data){
+						window.location.reload(true)
+						return false;
+					}
+				})
+				return false;
+			}
+			if($('#tabs').tabs('exists',node.text)){
+				$('#tabs').tabs('select',node.text);
+			}else{
+				 var content="<iframe frameborder=0 scrolling='auto' style='width:100%;height:99%' src='"+projectName+node.attributes.url+"'></iframe>";
+				 console.info(content); 
+				 $("#tabs").tabs("add",{
+						title:node.text,
+						iconCls:node.iconCls,
+						closable:true,
+						content:content,
+						border:false,
+						});
+			}
+		};
+
+
+		
+		//选择角色	
+		function chooseRole(uR) {
+		console.log(uR)
+		var Role=[]
+		for(var i=0;i<uR.length;i++){
+			Role.push(uR[i].role)
+		}
+			console.log(Role)
+			$("#edlg").dialog({title : '请双击鼠标选择角色',closed:false});
+			$("#dtR").datagrid({
+				data:Role,
+				singleSelect : true,
+				onDblClickRow : function(index, row) {
+					console.info(index);console.info(row)
+					$.get(projectName + '/QueryTree',{"id":row.id},function(data){
+						$("#tree").tree({
+							data : data,
+							lines : true,
+							dnd : true,
+							animate : true,
+							onClick:function(node){
+								openTbas(node)
+							},
+							onLoadSuccess:function(){$("#tree").tree('expandAll')}
+						});
+					})
+					$('#edlg').dialog('close');
+				}
+			});
+		} //选择角色函数结尾
+
+
+$("#dg").datagrid({
+			onLoadSuccess: function (data) {                
+            //datagrid头部 table 的第一个tr 的td们，即columns的集合                
+            var headerTds = $(".datagrid-header-inner table tr:first-child").children();                
+            //datagrid主体 table 的第一个tr 的td们，即第一个数据行                
+            var bodyTds = $(".datagrid-body table tr:first-child").children();                
+            //循环设置宽度
+            headerTds.each(function (i, obj) {       
+                var headerTd = $(headerTds.get(i));                    
+                var bodyTd = $(bodyTds.get(i));  
+                var headerTdWidth = headerTd.width(); //获取第i个头部td的宽度                  
+                bodyTd.width(headerTdWidth);
+            });
+         },
+	  })
+
+	})
+</script>
+
+
+</head>
+<body class="easyui-layout">
+	<div region="north" style="height: 72px;">
+		<table width="100%" height="100%" border="0" cellspacing="0"
+			cellpadding="0">
+			<tr>
+				<td width="381px" style="background:url(static/images/top_left.jpg)"></td>
+				<td style="background:url(static/images/top_center.jpg)">
+					<div id="userInfo" class="userInfo"></div>
+				</td>
+				<td valign="bottom" width="544px"
+					style="background:url(static/images/top_right.jpg)">
+					<div id="clock" class="clock"></div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div region="center">
+		<div class="easyui-tabs" fit="true" border="false" id="tabs"></div>
+	</div>
+	<div region="west" style="width: 200px" title="导航菜单" split="true"
+		iconCls="icon-navigation">
+		<ul id="tree" class="easyui-tree" style="padding: 10px"></ul>
+	</div>
+	<div region="south" style="height: 30px;padding: 5px" align="center">
+		Copyright © 2012-2017 南通小锋网络科技有限公司 版权所有</div>
+
+
+	<div id="dlg" class="easyui-dialog"
+		style="width:400px;height:180px;padding: 10px 20px" closed="true"
+		buttons="#dlg-buttons" data-options="onClose:function(){resetValue()}">
+
+		<form id="fm" method="post">
+			<table cellspacing="8px">
+				<tr>
+					<td>新密码：</td>
+					<td><input type="password" id="newPassword" name="newPassword"
+						class="easyui-validatebox" required="true" style="width: 200px" /></td>
+				</tr>
+				<tr>
+					<td>确认新密码：</td>
+					<td><input type="password" id="newPassword2"
+						name="newPassword2" class="easyui-validatebox" required="true"
+						style="width: 200px" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+
+	<div id="dlg-buttons">
+		<a href="javascript:modifyPassword()" class="easyui-linkbutton"
+			iconCls="icon-ok">保存</a> <a
+			href="javascript:closePasswordModifyDialog()"
+			class="easyui-linkbutton" iconCls="icon-cancel">关闭</a>
+	</div>
+
+
+
+	<div id="menu" class="easyui-menu">
+		<div id="mm-tabrefresh" data-options="name:1,iconCls:'icon-refresh'">
+			刷新当前标签页</div>
+		<div class="menu-sep"></div>
+		<div id="mm-tabclose" data-options="name:2,iconCls:'icon-closetab'">关闭当前标签页</div>
+		<div id="mm-tabcloseall"
+			data-options="name:3,iconCls:'icon-closealltab'">关闭全部标签页</div>
+		<div id="mm-tabcloseother"
+			data-options="name:4,iconCls:'icon-closeothertab'">关闭其他标签页</div>
+		<div id="mm-tabcloseright"
+			data-options="name:5,iconCls:'icon-closerighttab'">关闭右侧标签页</div>
+		<div id="mm-tabcloseleft"
+			data-options="name:6,iconCls:'icon-closelefttab'">关闭左侧标签页</div>
+	</div>
+
+	<div id="edlg" class="easyui-dialog" style="width:350px;height:210px"  closed="true">
+		<div id="ddt">
+			<table id="dtR" class="easyui-datagrid" style="height:200px" >
+				<thead>
+					<tr><th data-options="field:'name',width:333 " >角色</th></tr>
+				</thead>
+			</table>
+			<!-- 	<button>请选择角色</button> -->
+		</div>
+	</div>
+
+</body>
+
+</html>

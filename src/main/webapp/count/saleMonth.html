@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>按月统计分析</title>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../static/highcharts4/js/highcharts.js"></script> 
+<script type="text/javascript" src="../static/js/date.js"></script>
+<script type="text/javascript" src="../js/echarts.min.js"></script>
+<script type="text/javascript" src="../js/projectUtil.js"></script>
+<script type="text/javascript">
+	function formatMoney(val,row){
+		return "￥"+val.toFixed(2);
+	}
+	
+	function myformatter(date){
+        var y = date.getFullYear();
+        var m = date.getMonth()+1;
+        var d = date.getDate();
+        return y+'-'+(m<10?('0'+m):m);
+    }
+
+	function myparser(s){
+        if (!s) return new Date();
+        var ss = (s.split('-'));
+        var y = parseInt(ss[0],10);
+        var m = parseInt(ss[1],10);
+        var d = parseInt(ss[2],10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+            return new Date(y,m-1,d);
+        } else {
+            return new Date();
+        }
+    }
+    
+    $(function(){
+    	var curr_time = new Date();
+		var strDate = curr_time.getFullYear()+"-";
+		var month=curr_time.getMonth()+1;
+		if(month.toString().length==1){
+			month="0"+month;
+		}
+		strDate += month;
+		
+		$("#s_begin").datebox("setValue",  strDate); 
+		$("#s_end").datebox("setValue",  strDate); 
+		
+    
+    })
+	
+</script>
+</head>
+<body>
+	<div style="height: 100px;padding: 10px;border: 0px;" >
+		<fieldset style="border-color: #E7F0FF">
+ 			<legend>统计设置</legend>
+ 				<div style="padding: 5px">
+ 					统计月份：<input id="s_begin" class="easyui-datebox" data-options="formatter:myformatter,parser:myparser" editable=false  style="width:80px">
+ 					&nbsp;&nbsp;-&nbsp;&nbsp;
+ 					<input id="s_end" class="easyui-datebox" data-options="formatter:myformatter,parser:myparser"  editable=false  style="width:80px">
+ 					&nbsp;&nbsp;<a href="javascript:search()" class="easyui-linkbutton" iconCls="icon-search" plain="true">搜索</a>
+ 				</div>
+ 			</form>
+ 		</fieldset>
+	</div>
+	
+	<div id="EchartsMain" style="width: 1200px; height: 480px;" >
+	</div>
+	
+	<div style="padding: 10px;border: 0px;height: 385px">
+		<table id="dg"  class="easyui-datagrid" fit=true  
+		   fitColumns="true"  rownumbers="true" singleSelect="true"
+		      >
+		   <thead>
+		   	<tr>
+		   		<th field="date" width="30" align="center">统计月份</th>
+		   		<th field="amountSale" width="150" align="right" formatter="formatMoney">销售金额</th>
+		   		<th field="amountCost" width="50" align="right" formatter="formatMoney">成本金额</th>
+		   		<th field="amountProfit" width="50" align="right" formatter="formatMoney">盈利金额</th>
+		   	</tr>
+		   </thead>
+		</table>
+	</div>
+   
+	<script type="text/javascript">
+		var myChart = echarts.init(document.getElementById('EchartsMain'));
+		var option = {
+			title : {
+				text : '按月统计分析'
+			},
+			tooltip : {},
+			 grid:{
+                 left:5,
+                 right:20,
+                 top:80,
+                 bottom:80,
+                 containLabel:true,
+             },
+			xAxis : {
+				name:'日期',
+				nameLocation:'middle',
+				nameTextStyle:{
+					color:'red',
+					fontWeight:'bolder',
+					fontSize:18,
+				},
+				nameGap:45,
+				data : [],
+				 //nameLocation:'end',//坐标轴名称显示位置。
+		            axisLabel : {//坐标轴刻度标签的相关设置。
+		                interval:0,
+		                rotate:"40",
+		                
+		            }
+               
+			},
+			yAxis : {
+				//name:'销售利润',
+				nameLocation:'end',
+				nameTextStyle:{
+					color:'red',
+					fontWeight:'bolder',
+					fontSize:18,
+				},
+				nameGap:40,
+			},
+			series : [ {
+				name : '销售利润',
+				type : 'bar',
+				data : []
+			} ]
+		};
+		myChart.setOption(option);
+		function search(){
+			var begin = $("#s_begin").datebox('getValue'); 
+			var end = $("#s_end").datebox('getValue'); 
+			$.get(projectName+'/GoodsCount/SaleDayAndMouthCount',{"begin":begin,"end":end,"type":"month"}, function(data) {
+				console.info(data)
+			myChart.setOption({
+				xAxis : {
+					data : data.date
+				},
+				series : [ {
+					// 根据名字对应到相应的系列
+					name : '销售利润',
+					data : data.profit
+				} ]
+			});
+			
+			$("#dg").datagrid({data:data.saleCount})
+			
+		});		
+		}
+	
+	</script>
+</body>
+</html>

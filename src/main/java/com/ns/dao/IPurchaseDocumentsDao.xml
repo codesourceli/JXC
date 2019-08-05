@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IPurchaseDocumentsDao">
+  		<select id="searchPurchase" resultMap="SelectPurchaseBillMap">
+  			select * from t_purchase_list 
+  			<where>
+  				<if test="purchaseNumber!=null">
+  					and purchase_number like '%' #{purchaseNumber} '%'
+  				</if>
+  				<if test="supplier.id!=null">
+  					and supplier_id=#{supplier.id}
+  				</if>
+  				<if test="state!=null and state!=0">
+  					and state=#{state}
+  				</if>
+  				<if test="bPurchaseDate!=null and ePurchaseDate!=null">
+  					and purchase_date between #{bPurchaseDate} and #{ePurchaseDate}
+  				</if>
+  			</where>
+  		</select>
+  		
+  		<resultMap type="PurchaseList" id="SelectPurchaseBillMap">
+  			<id column="id" property="id"/>
+  			<result column="purchase_number" property="purchaseNumber"/>
+  			<result column="purchase_date" property="purchaseDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="supplier" javaType="Supplier" select="SelectSupplier" column="supplier_id" />
+  			<collection property="purchaseListGoodsList" ofType="PurchaseListGoods" select="SelectPurchaseListGoods" column="id" />
+  		</resultMap>
+  		
+ 		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectSupplier" resultType="Supplier">
+  			select * from t_supplier where id=#{supplier_id}
+  		</select>			
+  		<select id="SelectPurchaseListGoods" resultType="PurchaseListGoods">
+  			select * from t_purchase_list_goods where purchase_list_id=#{id}
+  		</select>		
+  		
+  		<delete id="deletePurchase">
+  			delete from t_purchase_list_goods where purchase_list_id=#{id}
+  		</delete>
+  		<delete id="deletePurchaseGoodslist">
+  			delete from t_purchase_list_goods where id=#{id}
+  		</delete>
+  	</mapper>
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	

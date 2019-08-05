@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IPowerDao">
+  		<select id="QueryAllRole" resultType="Role">
+  			select * from t_role
+  		</select>
+  		
+  		<select id="QueryAllRoleTotal" resultType="int">
+  			select count(*) from t_role
+  		</select>
+  		
+  		
+  		<select id="QueryAllMenu" resultMap="SelectMenuMapper">
+  			select * from t_menu where
+  			<if test="pId==null">
+  				 pId=-1
+  			</if>
+  			<if test="pId!=null">
+  				 pId=#{id}
+  			</if>
+  		</select>
+  		<resultMap type="Menu" id="SelectMenuMapper">
+  			<id column="id" property="id"/>
+  			<result column="iconCls" property="iconCls"/>
+  			<result column="text" property="text"/>
+  			<result column="state" property="state"/>
+  			<result column="url" property="url"/>
+  			<result column="pId" property="pId"/>
+  			<collection property="children" ofType="Menu" select="SelectChildrenMenu" column="id" />
+  		</resultMap>
+  		<select id="SelectChildrenMenu" resultMap="SelectMenuMapper">
+  			select * from t_menu where pId=#{id}
+  		</select>
+  		
+  		
+  		<select id="GetSetMenu"	resultMap="SelectGetSetMenuMapper">
+  			select * from t_role_menu where role_id=#{id}
+  		</select>
+  		<resultMap type="RoleMenu" id="SelectGetSetMenuMapper">
+  			<id column="id" property="id"/>
+  			<association property="role" javaType="Role" select="SelectRole" column="role_id" />
+  			<association property="menu" javaType="Menu" select="SelectMenu" column="menu_id"></association>
+  		</resultMap>
+  		<select id="SelectRole" resultType="Role">
+  			select * from t_role where id=#{role_id}
+  		</select>
+  		<select id="SelectMenu" resultType="Menu">
+  			select * from t_menu where id=#{menu_id}
+  		</select>
+  		
+  		
+  		<insert id="AddRoleMenu">
+  			insert into  t_role_menu (menu_id,role_id) values (#{AddId},#{roleId})
+  		</insert>
+  		
+  		<delete id="deleteRoleMenu">
+  			delete from t_role_menu where menu_id=#{DeleteId} and role_id=#{roleId}
+  		</delete>
+  		
+  		
+  		<insert id="AddRole">
+  			insert into t_role (bz,name,remarks) values (#{name},#{name},#{remarks})
+  		</insert>
+  		
+  		<update id="UpdateRole">
+  			update t_role set bz=#{name},name=#{name},remarks=#{remarks} where id=#{id}
+  		</update>
+  		
+  		<delete id="DeteRole">
+  			delete from t_role where id=#{id}
+  		</delete>
+  		
+  		<select id="SearchRole" resultType="Role">
+  			select id,name,remarks from t_role 
+  			<where>
+ 				<if test="name!=null">
+ 					and name like '%' #{name} '%'
+  				</if>
+  			</where>
+  		</select>
+  		
+  		<delete id="DeteRoleUser">
+  			delete from t_user_role where role_id=#{id}
+  		</delete>
+  		<delete id="DeteRoleMenu">
+  			delete from t_role_menu where role_id=#{id}
+  		</delete>
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  	</mapper>

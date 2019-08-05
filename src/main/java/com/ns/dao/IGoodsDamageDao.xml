@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IGoodsDamageDao">
+		<insert id="SaveDamageBill">
+			insert into t_damage_list (damage_date,damage_number,remarks,user_id) values (#{damageDate},#{damageNumber},#{remarks},#{user.id})
+			<selectKey resultType="int" keyProperty="id" order="AFTER"> 
+		         SELECT @@identity;
+		    </selectKey>
+		</insert>
+		<insert id="SaveDamageListGoods">
+			insert into t_damage_list_goods (code,model,name,num,price,total,unit,damage_list_id,type_id,goods_id) values
+									(#{code},#{model},#{name},#{num},#{price},#{total},#{unit},#{damageList.id},#{typeId},#{goodsId})	
+		</insert>
+		
+		<update id="UpdateInventoryQuantity">
+			UPDATE t_goods SET inventory_quantity=#{inventoryQuantity},state=#{state} where id=#{id}
+		</update>
+		
+		
+		<select id="QueryDamage" resultMap="SelectDamageMapper">
+			select * from t_damage_list where damage_date BETWEEN #{bDamageDate} AND #{eDamageDate}
+		</select>
+		<resultMap type="DamageList" id="SelectDamageMapper">
+			<id column="id" property="id" />
+			<result column="damage_number" property="damageNumber"/>
+			<result column="damage_date" property="damageDate"/>
+			<result column="remarks" property="remarks"/>
+			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+			<collection property="damageListGoods" ofType="DamageListGoods" select="SelectDamageListGoods" column="id" />
+		</resultMap>
+		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+		<select id="SelectDamageListGoods" resultType="DamageListGoods">
+  			select * from t_damage_list_goods where damage_list_id=#{id}
+  		</select>
+  	</mapper>
+  	
+  	
+  	
+  	
+  	
+  	
+  	

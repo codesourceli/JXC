@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IReturnPurchaseDao">
+  		<select id="searchReturn" resultMap="SelectReturnMap">
+  			select * from t_return_list 
+  			<where>       
+  				<if test="returnNumber!=null">
+  					and return_number like '%' #{returnNumber} '%'
+  				</if>
+  				<if test="supplier.id!=null">
+  					and supplier_id=#{supplier.id}
+  				</if>
+  				<if test="state!=null and state!=0">
+  					and state=#{state}
+  				</if>
+  				<if test="bReturnDate!=null and eReturnDate!=null">
+  					and return_date between #{bReturnDate} and #{eReturnDate}
+  				</if>
+  			</where>
+  		</select>						 
+  		<resultMap type="ReturnList" id="SelectReturnMap">
+  			<id column="id" property="id" />
+  			<result column="amount_paid"  property="amountPaid"/>
+  			<result column="amount_payable"  property="amountPayable"/>
+  			<result column="remarks"  property="remarks"/>
+  			<result column="return_date"  property="returnDate"/>
+  			<result column="return_number"  property="returnNumber"/>
+  			<result column="state"  property="state"/>
+  			<association property="user" javaType="User" select="SelectRetutnUser" column="user_id" />
+  			<association property="supplier" javaType="Supplier" select="SelectReturnSupplier" column="supplier_id" />
+  			<collection property="returnListGoodsList" ofType="ReturnListGoods" select="SelectReturnListGoods" column="id" />
+  		</resultMap>
+		<select id="SelectRetutnUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectReturnSupplier" resultType="Supplier">
+  			select * from t_supplier where id=#{supplier_id}
+  		</select>
+  		<select id="SelectReturnListGoods" resultType="ReturnListGoods">
+  			select * from t_return_list_goods where return_list_id=#{id}  		
+  		</select>
+  		
+  		<delete id="DeleteReturnList">
+  			delete from t_return_list where id=#{id}
+  		</delete>
+  		
+  		<delete id="DeleteReturnListGoods">
+  			delete from t_return_list_goods where return_list_id=#{id}
+  		</delete>
+  		
+  	</mapper>
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	

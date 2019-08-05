@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.ISupplierAndCustomerDao">
+  		<select id="CountPurchaseList" resultMap="SelectCountPurchaseBillMapper">
+  			select * from t_purchase_list 
+  			<where>
+  				<if test="purchaseList.state!=0">
+  					and state=#{purchaseList.state}
+  				</if>
+  				<if test="purchaseList.supplier.id!=null">
+  					and supplier_id=#{purchaseList.supplier.id}
+  				</if>
+  				<if test="begin!=null and end!=null">
+  					and purchase_date between #{begin} and #{end}
+  				</if>
+  			</where>
+  		</select>
+  		<resultMap type="PurchaseList" id="SelectCountPurchaseBillMapper">
+  			<id column="id" property="id"/>
+  			<result column="purchase_number" property="purchaseNumber"/>
+  			<result column="purchase_date" property="purchaseDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="supplier" javaType="Supplier" select="SelectSupplier" column="supplier_id" />
+  			<collection property="purchaseListGoodsList" ofType="PurchaseListGoods" select="SelectPurchaseListGoods" column="id" />
+  		</resultMap>
+  		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectSupplier" resultType="Supplier">
+  			select * from t_supplier where id=#{supplier_id}
+  		</select>			
+  		<select id="SelectPurchaseListGoods" resultType="PurchaseListGoods">
+  			select * from t_purchase_list_goods where purchase_list_id=#{id}
+  		</select>	
+  		
+  		
+  		
+  		<select id="CountReturnList" resultMap="SelecCountReturnListBillMapper">
+  			select * from t_return_list 
+  			<where>
+  				<if test="returnlist.state!=0">
+  					and state=#{returnlist.state}
+  				</if>
+  				<if test="returnlist.supplier.id!=null">
+  					and supplier_id=#{returnlist.supplier.id}
+  				</if>
+  				<if test="begin!=null and end!=null">
+  					and return_date between #{begin} and #{end}
+  				</if>
+  			</where>
+  		</select>
+  		
+  		<resultMap type="ReturnList" id="SelecCountReturnListBillMapper">
+  			<id column="id" property="id"/>
+  			<result column="return_number" property="returnNumber"/>
+  			<result column="return_date" property="returnDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="supplier" javaType="Supplier" select="SelectSupplier" column="supplier_id" />
+  			<collection property="returnListGoodsList" ofType="ReturnListGoods" select="SelectReturnListGoods" column="id" />
+  		</resultMap>
+  		<select id="SelectReturnListGoods" resultType="ReturnListGoods">
+  			select * from t_return_list_goods where return_list_id=#{id}
+  		</select>	
+  		
+  		<select id="QueryPurchaseListGoodsBillGoods" resultType="PurchaseListGoods">
+  			select * from t_purchase_list_goods where purchase_list_id=#{id}
+  		</select>
+
+  		<select id="QueryReturnListGoodsBillGoods" resultType="ReturnListGoods">
+  			select * from t_return_list_goods where return_list_id=#{id}
+  		</select>
+
+
+
+
+<!-- 客户统计 -->
+		<select id="CountSaleList" resultMap="SelectCountSaleBillMapper">
+  			select * from t_sale_list 
+  			<where>
+  				<if test="saleList.state!=0">
+  					and state=#{saleList.state}
+  				</if>
+  				<if test="saleList.customer.id!=null">
+  					and customer_id=#{saleList.customer.id}
+  				</if>
+  				<if test="begin!=null and end!=null">
+  					and sale_date between #{begin} and #{end}
+  				</if>
+  			</where>
+  		</select>
+  		<resultMap type="SaleList" id="SelectCountSaleBillMapper">
+  			<id column="id" property="id"/>
+  			<result column="sale_number" property="saleNumber"/>
+  			<result column="sale_date" property="saleDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+  		</resultMap>
+			<select id="SelectCustomer" resultType="Customer">
+				select * from t_customer where id=#{customer_id}
+			</select>
+	
+		
+		<select id="CountCustomerReturnList" resultMap="SelectCountCustomerReturnListBillMapper">
+  			select * from t_customer_return_list 
+  			<where>
+  				<if test="customerReturnList.state!=0">
+  					and state=#{customerReturnList.state}
+  				</if>
+  				<if test="customerReturnList.customer.id!=null">
+  					and customer_id=#{customerReturnList.customer.id}
+  				</if>
+  				<if test="begin!=null and end!=null">
+  					and customer_return_date between #{begin} and #{end}
+  				</if>
+  			</where>
+  		</select>
+  		<resultMap type="CustomerReturnList" id="SelectCountCustomerReturnListBillMapper">
+  			<id column="id" property="id"/>
+  			<result column="customer_return_number" property="customerReturnNumber"/>
+  			<result column="customer_return_date" property="customerReturnDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+  		</resultMap>
+			
+	
+	
+		<select id="QueryCustomerReturnListBillGoods" resultType="CustomerReturnListGoods">
+  			select * from t_customer_return_list_goods where customer_return_list_id=#{id}
+  		</select>
+
+  		<select id="QuerySaleListBillGoods" resultType="SaleListGoods">
+  			select * from t_sale_list_goods where sale_list_id=#{id}
+  		</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  	</mapper>

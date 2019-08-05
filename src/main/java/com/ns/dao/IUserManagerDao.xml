@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IUserManagerDao">
+		<select id="QueryAllUser" resultType="User">
+			select * from t_user limit #{start},#{rows}
+		</select>
+		
+		<select id="QueryAllUserTotal" resultType="int">
+			select count(*) from t_user
+		</select>  	
+		
+		<select id="QueryAllRole" resultType="Role">
+			select id,name,remarks from t_role 
+		</select>	
+		
+		
+		<select id="QueryRolePart" resultMap="UserRoleMap">
+			SELECT * FROM t_user_role where user_id=#{id}
+		</select>
+		
+		<resultMap type="UserRole" id="UserRoleMap">
+  			<id column="id" property="id"/>
+  			<association property="role" javaType="Role" select="SelectRole" column="role_id" />
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  		</resultMap>
+  		<select id="SelectRole" resultType="Role">
+  			select * from `t_role` where id=#{role_id}
+  		</select>
+  		<select id="SelectUser" resultType="User">
+  			select * from `t_user` where id=#{user_id}
+  		</select>
+  		
+  		
+  		<insert id="AddRoleUser">
+  			insert into t_user_role (role_id,user_id) values (#{roleId},#{userId})
+  		</insert>
+  		
+  		<delete id="deleteRoleUser">
+  			delete from t_user_role where role_id=#{roleId} and  user_id=#{userId}
+  		</delete>
+  		
+  		
+  		<insert id="AddUser">
+  			insert into t_user (userName,password,trueName,remarks) values (#{userName},#{password},#{trueName},#{remarks})
+  		</insert>
+  		
+  		<update id="UpdateUser">
+  			update t_user set userName=#{user.userName},password=#{user.password},trueName=#{user.trueName},remarks=#{user.remarks} where id=#{id}
+  		</update>
+  		
+  		
+  		<delete id="DeleteUserRole">
+  			delete from t_user_role where user_id=#{id}
+  		</delete>
+  		
+  		<delete id="DeleteUser">
+  			delete from t_user where id=#{id}
+  		</delete>
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  	</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.ILogDao">
+		<insert id="SaveLog">
+			insert into t_log (content,time,type,user_id) values (#{content},#{time},#{type},#{user.id})
+		</insert>  	
+		
+		<delete id="DeleteLog">
+			delete from t_log limit #{num}
+		</delete>
+			
+  	</mapper>

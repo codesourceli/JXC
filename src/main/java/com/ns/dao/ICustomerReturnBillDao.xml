@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.ICustomerReturnBillDao">
+		<select id="SearchCustomerReturnBill" resultMap="SelectCustomerReturnBillMap">
+  			select * from t_customer_return_list 
+  			<where>
+  				<if test="customerReturnNumber!=null">
+  					and customer_return_number like '%' #{customerReturnNumber} '%'
+  				</if>
+  				<if test="customer.id!=null">
+  					and customer_id=#{customer.id}
+  				</if>
+  				<if test="state!=null and state!=0">
+  					and state=#{state}
+  				</if>
+  				<if test="bCustomerReturnDate!=null and eCustomerReturnDate!=null">
+  					and customer_return_date between #{bCustomerReturnDate} and #{eCustomerReturnDate}
+  				</if>
+  			</where>
+  		</select>
+  		
+  		<resultMap type="CustomerReturnList" id="SelectCustomerReturnBillMap">
+  			<id column="id" property="id"/>
+  			<result column="customer_return_number" property="customerReturnNumber"/>
+  			<result column="customer_return_date" property="customerReturnDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+  			<collection property="customerReturnListGoodsList" ofType="CustomerReturnListGoods" select="SelectcustomerReturnListGoodsList" column="id" />
+  		</resultMap>
+  		
+ 		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectCustomer" resultType="Customer">
+  			select * from t_customer where id=#{customer_id}
+  		</select>			
+  		<select id="SelectcustomerReturnListGoodsList" resultType="CustomerReturnListGoods">
+  			select * from t_customer_return_list_goods where customer_return_list_id=#{id}
+  		</select>		
+  		
+  		<delete id="deleteCustomerReturnListGoods">
+  			delete from t_customer_return_list_goods where customer_return_list_id=#{id}
+  		</delete>
+  		<delete id="deleteBill">
+  			delete from t_customer_return_list where id=#{id}
+  		</delete>	
+  	</mapper>

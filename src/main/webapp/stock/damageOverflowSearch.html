@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>报损报溢查询</title>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../js/projectUtil.js"></script>
+<script type="text/javascript" src="../js/Operation.js"></script>
+<script type="text/javascript" src="../static/js/date.js"></script>
+<script type="text/javascript">
+
+	var type;
+	
+/* 	function formatTotal(val,row){
+		return "￥"+val.toFixed(2);
+	}
+	
+	function formatPrice(val,row){
+		return "￥"+val;
+	}
+	
+	
+	 */
+	 function formatUser(val,row){
+		return val.trueName;
+	}
+
+	
+	
+				
+	var type;
+	//搜索
+	function search(){
+		$('#dg').datagrid('loadData', { total: 0, rows: [] });  
+		$('#dg2').datagrid('loadData', { total: 0, rows: [] });  
+		var s_begin= $("#s_begin").datebox('getValue');
+		var s_end= $("#s_end").datebox('getValue');
+		var s_type=$("#s_type").combobox('getValue');
+		type=s_type;
+		if(s_type==1){
+			$.ajax({
+				url:projectName+'/GoodsDamage/QueryDamage',
+				data:{'bDamageDate':s_begin,'eDamageDate':s_end},
+				success:function(result){
+					if(result){
+						for(var i=0;i<result.length;i++){
+							$('#dg').datagrid('appendRow',{
+								id:result[i].id,
+								number:result[i].damageNumber,
+								date:result[i].damageDate,
+								type:"报损单",
+								user:result[i].user,
+								remarks:result[i].remarks
+							})
+						}
+					}							
+				}
+			});
+			
+		}
+		if(s_type==2){
+			$.ajax({
+				url:projectName+'/GoodsOverflow/QueryOverflow',
+				data:{'bOverflowDate':s_begin,'eOverflowDate':s_end},
+				success:function(result){
+					if(result){
+						for(var i=0;i<result.length;i++){
+							$('#dg').datagrid('appendRow',{
+								id:result[i].id,
+								number:result[i].overflowNumber,
+								date:result[i].overflowDate,
+								type:"报溢单",
+								user:result[i].user,
+								remarks:result[i].remarks
+							})
+						}
+					}
+				}
+			});
+			
+		}
+	}
+	
+
+
+	$(function(){
+		var curr_time = new Date();
+		var strDate = curr_time.getFullYear()+"-";
+		var month=curr_time.getMonth()+1;
+		if(month.toString().length==1){
+			month="0"+month+"-";
+		}
+		strDate += month;
+		var date = curr_time.getDate();
+		if(date.toString().length==1){
+			date="0"+date;
+		}
+		strDate += date;
+		$("#s_begin").datebox("setValue",  strDate); 
+		$("#s_end").datebox("setValue",  strDate); 
+		
+	$('#dg').datagrid({
+		onClickRow:	function(index,row){
+			if(type==1){
+				$('#dg2').datagrid({
+					url:projectName+'/GoodsDamage/QueryDamageListGoods',
+					queryParams: {id:row.id},
+				});
+			}
+			if(type==2){
+				$('#dg2').datagrid({
+					url:projectName+'/GoodsOverflow/QueryOverflowListGoods',
+					queryParams: {id:row.id},
+				});
+			}
+		}	
+	})
+	
+		
+	})
+	
+</script>
+</head>
+<body class="easyui-layout" style="margin: 1px">
+<div region="north" style="height: 350px;">
+	<table id="dg" title="报损报溢查询" class="easyui-datagrid" fit=true
+	   fitColumns="true"  rownumbers="true" singleSelect="true"
+	    toolbar="#tb" >
+	   <thead>
+	   	<tr>    
+	   	    <th data-options="field:'id',width:30,align:'center',hidden:true">编号</th>
+	   	    <th data-options="field:'number',width:30,align:'center'">单号</th>  <!-- formatter="formatnumber" -->
+	   		<th data-options="field:'date',width:30,align:'center'">日期</th>
+	   		<th data-options="field:'type',width:20,align:'center'">类型</th>
+	   		<th data-options="field:'user',width:20,align:'center',formatter:formatUser">操作员</th> <!--  -->
+	   		<th data-options="field:'remarks',width:100,align:'center'">备注</th>
+	   	</tr>
+	   </thead>
+	 </table>
+	 
+	 <div id="tb">
+	 	<div style="padding-bottom: 5px">
+	 		<fieldset style="border-color: #E7F0FF">
+	 			<legend>查询设置</legend>
+	 		&nbsp;&nbsp;&nbsp;查询日期：&nbsp;
+	 		<input id="s_begin" class="easyui-datebox" editable=false  style="width:100px">
+	 	&nbsp;&nbsp;-&nbsp;&nbsp;
+	 		<input id="s_end" class="easyui-datebox" editable=false  style="width:100px">
+	 		&nbsp;&nbsp;&nbsp;单据类型：
+	 		<select class="easyui-combobox"  id="s_type"  style="width: 100px;" editable="false" panelHeight="auto">
+				<option value="1">报损单</option>
+                <option value="2">报溢单</option>	
+		   </select>
+	 		&nbsp;&nbsp;<a href="javascript:search()" class="easyui-linkbutton" iconCls="icon-search" plain="true">搜索</a>
+	 		</fieldset>
+	 	</div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+	 </div>
+</div>
+<div region="center" style="margin-top: 5px;">
+	 <table id="dg2"  class="easyui-datagrid" fit=true
+	   fitColumns="true"  rownumbers="true" singleSelect="true"
+	      >
+	   <thead>
+	   	<tr>
+	   		<th field="code" width="30" align="center">商品编码</th>
+	   		<th field="name" width="150" align="center">商品名称</th>
+	   		<th field="model" width="50" align="center">商品型号</th>
+	   		<th field="price" width="50" align="center" >单价</th>  <!-- formatter="formatPrice" -->
+	   		<th field="num" width="50" align="center" >数量</th>
+	   		<th field="unit" width="50" align="center" >单位</th>
+	   		<th field="total" width="50" align="center" >总金额</th>  <!-- formatter="formatTotal" -->
+	   	</tr>
+	   </thead>
+	 </table>
+</div>
+</body>
+</html>

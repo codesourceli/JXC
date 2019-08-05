@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IGoodsCountDao">
+		<select id="PurchaselistGoodsCount" resultMap="SelectPurchaselistGoodsCount">
+			select * from t_purchase_list_goods
+			<where>
+				<if test="purchaseListGoods.codeOrName!=null">
+					and code=#{purchaseListGoods.codeOrName} or name like '%' #{purchaseListGoods.codeOrName} '%' 
+				</if>
+				<if test="purchaseListGoods.typeId!=null">
+					and type_id=#{purchaseListGoods.typeId}
+				</if>
+			</where> 
+		</select>
+		<resultMap type="PurchaseListGoods" id="SelectPurchaselistGoodsCount">
+			<id column="id" property="id"/>
+			<result column="code" property="code"/>
+			<result column="model" property="model"/>
+			<result column="name" property="name"/>
+			<result column="num" property="num"/>
+			<result column="peice" property="price"/>
+			<result column="total" property="total"/>
+			<result column="unit" property="unit"/>
+			<association property="type" javaType="GoodsType" select="SelectType" column="type_id" />
+			<association property="purchaseList" javaType="PurchaseList" select="SelectPurchaseList" column="purchase_list_id" />
+		</resultMap>
+		<select id="SelectType" resultType="GoodsType">
+			select * from t_goodstype where id=#{type_id}
+		</select>
+		<select id="SelectPurchaseList" resultType="PurchaseList">
+			select * from t_purchase_list where id=#{purchase_list_id}
+		</select>
+		
+		<select id="PurchaselistCount"  resultMap="SelectPurchaselistCount">
+			select * from t_purchase_list where purchase_date BETWEEN #{begin} AND #{end}
+		</select>
+		<resultMap type="PurchaseList" id="SelectPurchaselistCount">
+			<id column="id" property="id"/>
+			<result column="purchase_date" property="purchaseDate"/>
+			<result column="purchase_number" property="purchaseNumber"/>
+			<association property="supplier" javaType="Supplier" select="SelectSupplier" column="supplier_id" />
+		</resultMap>
+		<select id="SelectSupplier" resultType="Supplier">
+			select * from t_supplier where id=#{supplier_id}
+		</select>
+		
+		
+		
+		<select id="ReturnListGoodsCount" resultMap="SelectReturnListGoodsCountMapper">
+			select * from t_return_list_goods
+			<where>
+				<if test="codeOrName!=null">
+					and code=#{codeOrName} or name like '%' #{codeOrName} '%' 
+				</if>
+				<if test="typeId!=null">
+					and type_id=#{typeId}
+				</if>
+			</where>
+		</select>
+		<resultMap type="ReturnListGoods" id="SelectReturnListGoodsCountMapper">
+			<id column="id" property="id"/>
+			<result column="code" property="code"/>
+			<result column="model" property="model"/>
+			<result column="name" property="name"/>
+			<result column="num" property="num"/>
+			<result column="peice" property="price"/>
+			<result column="total" property="total"/>
+			<result column="unit" property="unit"/>
+			<association property="type" javaType="GoodsType" select="SelectType" column="type_id" />
+			<association property="returnList" javaType="ReturnList" select="SelectReturnList" column="return_list_id" />
+		</resultMap>
+		<select id="SelectReturnList" resultType="ReturnList">
+			select * from t_return_list where id=#{return_list_id}
+		</select>
+		
+		
+		<select id="ReturnListCount" resultMap="SelectReturnListCountMapper">
+			select * from t_return_list where return_date  BETWEEN #{begin} AND #{end}
+		</select>
+		<resultMap type="ReturnList" id="SelectReturnListCountMapper">
+			<id column="id" property="id"/>
+			<result column="return_date" property="returnDate"/>
+			<result column="return_number" property="returnNumber"/>
+			<association property="supplier" javaType="Supplier" select="SelectSupplier" column="supplier_id" />
+		</resultMap>
+		
+		
+		<!-- 商品销售统计 -->
+		
+		<select id="SaleListGoodsCount" resultMap="SelectSaleListGoodsCountMapper">
+			select * from t_sale_list_goods
+			<where>
+				<if test="codeOrName!=null">
+					and code=#{codeOrName} or name like '%' #{codeOrName} '%' 
+				</if>
+				<if test="typeId!=null">
+					and type_id=#{typeId}
+				</if>
+			</where>
+		</select>
+		<resultMap type="SaleListGoods" id="SelectSaleListGoodsCountMapper">
+			<id column="id" property="id"/>
+			<result column="code" property="code"/>
+			<result column="model" property="model"/>
+			<result column="name" property="name"/>
+			<result column="num" property="num"/>
+			<result column="peice" property="price"/>
+			<result column="total" property="total"/>
+			<result column="unit" property="unit"/>
+			<association property="type" javaType="GoodsType" select="SelectType" column="type_id" />
+			<association property="saleList" javaType="SaleList" select="SelectSaleList" column="sale_list_id" />
+		</resultMap>
+		<select id="SelectSaleList" resultType="SaleList">
+			select * from t_sale_list where id=#{sale_list_id}
+		</select>
+		
+		<select id="SaleListCount" resultMap="SelectSaleListCountMapper">
+			select * from t_sale_list where date_format(sale_date,'%Y-%m')  BETWEEN #{begin} AND #{end}
+		</select>
+		<resultMap type="SaleList" id="SelectSaleListCountMapper">
+			<id column="id" property="id"/>
+			<result column="sale_date" property="saleDate"/>
+			<result column="sale_number" property="saleNumber"/>
+			<result column="amount_paid" property="amountPaid"/>
+			<result column="amount_payable" property="amountPayable"/>
+			<result column="remarks" property="remarks"/>
+			<result column="state" property="state"/>
+			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+			<collection property="saleListGoodsList" ofType="SaleListGoods" select="SelectSaleListGoods" column="id"></collection>
+		</resultMap>
+		<select id="SelectCustomer" resultType="Customer">
+			select * from t_customer where id=#{customer_id}
+		</select>
+		<select id="SelectSaleListGoods" resultMap="SelectSaleListGoodsMapper">
+			select * from t_sale_list_goods where sale_list_id=#{id}
+		</select>
+		<resultMap type="SaleListGoods" id="SelectSaleListGoodsMapper">
+			<id column="id" property="id"/>
+			<result column="code" property="code" />
+			<result column="model" property="model" />
+			<result column="name" property="name" />
+			<result column="num" property="num" />
+			<result column="price" property="price" />
+			<result column="total" property="total" />
+			<result column="unit" property="unit" />
+			<result column="goods_id" property="goodsId" />
+		</resultMap>
+		
+		
+		<select id="CustomerReturnListGoodsCount" resultMap="SelectCustomerReturnListGoodsCountMapper">
+			select * from t_customer_return_list_goods 
+			<where>
+				<if test="codeOrName!=null">
+					and code=#{codeOrName} or name like '%' #{codeOrName} '%' 
+				</if>
+				<if test="typeId!=null">
+					and type_id=#{typeId}
+				</if>
+			</where>
+		</select>
+		<resultMap type="CustomerReturnListGoods" id="SelectCustomerReturnListGoodsCountMapper">
+			<id column="id" property="id"/>
+			<result column="code" property="code"/>
+			<result column="model" property="model"/>
+			<result column="name" property="name"/>
+			<result column="num" property="num"/>
+			<result column="peice" property="price"/>
+			<result column="total" property="total"/>
+			<result column="unit" property="unit"/>
+			<association property="type" javaType="GoodsType" select="SelectType" column="type_id" />
+			<association property="customerReturnList" javaType="CustomerReturnList" select="SelectCustomerReturnList" column="customer_return_list_id" />
+		</resultMap>
+		<select id="SelectCustomerReturnList" resultType="CustomerReturnList">
+			select * from t_customer_return_list where id=#{customer_return_list_id}
+		</select>
+		
+		<select id="CustomerReturnListCount" resultMap="SelectCustomerReturnListCountMapper">
+			select * from t_customer_return_list where customer_return_date BETWEEN #{begin} AND #{end}
+		</select>	
+		<resultMap type="CustomerReturnList" id="SelectCustomerReturnListCountMapper">
+			<id column="id" property="id"/>
+			<result column="customer_return_date" property="customerReturnDate"/>
+			<result column="customer_return_number" property="customerReturnNumber"/>
+			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+		</resultMap>
+		
+		
+		
+		
+		
+		<select id="QueryGoodsById" resultMap="SelectGoodsMapper">
+			select * from t_goods where id=#{goodsId}
+		</select>
+		<resultMap type="Goods" id="SelectGoodsMapper">
+			<id column="id" property="id"/>
+			<result column="purchasing_price" property="purchasingPrice"/>
+		</resultMap>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+  	</mapper>

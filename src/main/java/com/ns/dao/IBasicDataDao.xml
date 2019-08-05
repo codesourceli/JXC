@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IBasicDataDao">
+  	
+  		<!-- 供应商管理 -->
+  	
+  		<select id="QuerySupplier" resultType="Supplier">
+  			select * from t_supplier
+  			<where>
+  				<if test="supplier.name!=null">
+  					and	name like '%' #{supplier.name} '%'
+  				</if>
+  			</where>
+  			  limit #{page.start},#{page.rows}
+  		</select>
+  		<select id="QuerySupplierCount" resultType="int">
+  			select count(*) from t_supplier
+  		</select>
+  		
+  		
+  		<insert id="AddSupplier">
+  			insert into t_supplier (name,contact,number,address,remarks) values (#{name},#{contact},#{number},#{address},#{remarks})
+  			<selectKey resultType="int" keyProperty="id" order="AFTER"> 
+		         SELECT @@identity;
+		    </selectKey>
+  		</insert>
+  		
+  		
+  		<update id="UpdateSupplier">
+  			update t_supplier set name=#{name},contact=#{contact},number=#{number},address=#{address},remarks=#{remarks}  where id=#{id}
+  		</update>
+  		
+  		<delete id="DeleteSupplier">
+  			delete from t_supplier where id=#{id}
+  		</delete>
+  		
+  		
+  		<!-- 客户管理 -->
+  		
+  		<select id="SearchCustomer" resultType="Customer">
+  			select * from t_customer
+  			<where>
+  				<if test="customer.name!=null">
+  					and	name like '%' #{customer.name} '%'
+  				</if>
+  			</where>
+  			  limit #{page.start},#{page.rows}
+  		</select>
+  		
+  		<select id="QueryCustomerCount" resultType="int">
+  			select count(*) from t_customer
+  		</select>
+  		
+  		<insert id="AddCustomer">
+  			insert into t_customer (name,contact,number,address,remarks) values (#{name},#{contact},#{number},#{address},#{remarks})
+  		</insert>
+  		
+  		<update id="UpdateCustomer">
+  			update t_customer set name=#{name},contact=#{contact},number=#{number},address=#{address},remarks=#{remarks}  where id=#{id}
+  		</update>
+  		
+  		<delete id="DeleteCustomer">
+  			delete from t_customer where id=#{id}
+  		</delete>
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  		
+  	</mapper>

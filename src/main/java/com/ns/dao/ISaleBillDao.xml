@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.ISaleBillDao">
+		<select id="SearchBill" resultMap="SelectSaleBillMap">
+  			select * from t_sale_list 
+  			<where>
+  				<if test="saleNumber!=null">
+  					and sale_number like '%' #{saleNumber} '%'
+  				</if>
+  				<if test="customer.id!=null">
+  					and customer_id=#{customer.id}
+  				</if>
+  				<if test="state!=null and state!=0">
+  					and state=#{state}
+  				</if>
+  				<if test="bSaleDate!=null and eSaleDate!=null">
+  					and sale_date between #{bSaleDate} and #{eSaleDate}
+  				</if>
+  			</where>
+  		</select>
+  		
+  		<resultMap type="SaleList" id="SelectSaleBillMap">
+  			<id column="id" property="id"/>
+  			<result column="sale_number" property="saleNumber"/>
+  			<result column="sale_date" property="saleDate"/>
+  			<result column="amount_payable" property="amountPayable"/>
+  			<result column="amount_paid" property="amountPaid"/>
+  			<result column="state" property="state"/>
+  			<result column="remarks" property="remarks"/>
+  			<association property="user" javaType="User" select="SelectUser" column="user_id" />
+  			<association property="customer" javaType="Customer" select="SelectCustomer" column="customer_id" />
+  			<collection property="saleListGoodsList" ofType="SaleListGoods" select="SelectSaleListGoods" column="id" />
+  		</resultMap>
+  		
+ 		<select id="SelectUser" resultType="User">
+  			select * from t_user where id=#{user_id}
+  		</select>
+  		<select id="SelectCustomer" resultType="Customer">
+  			select * from t_customer where id=#{customer_id}
+  		</select>			
+  		<select id="SelectSaleListGoods" resultType="SaleListGoods">
+  			select * from t_sale_list_goods where sale_list_id=#{id}
+  		</select>		
+  		
+  		<delete id="deleteSaleListGoods">
+  			delete from t_sale_list_goods where sale_list_id=#{id}
+  		</delete>
+  		<delete id="deleteBill">
+  			delete from t_sale_list where id=#{id}
+  		</delete>
+  	</mapper>
+  	
+  	
+  	
+  	
+  	
+  	
+  	

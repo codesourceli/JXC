@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>期初库存管理</title>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../js/projectUtil.js"></script>
+<script type="text/javascript">
+
+	var url;
+
+	function formatGoodsTypeName(val,row){
+		return row.type.name;
+	}
+	
+	
+	
+	function formatPurchasingPrice(val,row){
+		return "￥"+val;
+	}
+	
+	function formatAmount(val,row){
+		return "￥"+(row.inventoryQuantity*row.purchasingPrice).toFixed(2);
+	}
+			 
+	function openStorageDialog(row){
+		if(row==1){
+			$("#action").val(1)
+			var node=$("#dg").datagrid('getSelected')
+			if(!node){
+				$.messager.alert("提示",'请先选择要增加的商品','info');
+				return false;
+			}
+			AddToRepository(node)
+		}
+		if(row==2){
+			$("#action").val(2)
+			var node=$("#dg2").datagrid('getSelected')
+			if(!node){
+				$.messager.alert("提示",'请先选择要修改的商品','info');
+				return false;
+			}
+			UpdateNumOrPrice(node);
+		}
+	}
+	 
+	 function AddToRepository(node){
+	 	$("#purchasingPrice").val(node.purchasingPrice);$("#code").val(node.code);$("#name").val(node.name);$("#unit").val(node.unit);
+	 	$("#dlg").dialog({title:'添加商品',closed:false,modal: true})
+	 }
+	 
+	 function UpdateNumOrPrice(node){
+	 	$("#purchasingPrice").val(node.purchasingPrice);$("#code").val(node.code);$("#name").val(node.name);$("#unit").val(node.unit);
+	 	$("#price").numberbox('setValue',node.purchasingPrice);$("#num").numberbox('setValue',node.inventoryQuantity)
+	 	$("#dlg").dialog({title:'修改数量或成本价',closed:false,modal: true})
+	 }
+	 	 
+	 function saveStore(){
+	   var node=$("#dg").datagrid('getSelected')
+	   var rowIndex=$('#dg').datagrid('getRowIndex',$('#dg').datagrid('getSelected'));
+      
+       var node2=$("#dg2").datagrid('getSelected')
+	   var rowIndex2=$('#dg2').datagrid('getRowIndex',node2);
+	 	
+	 	var num = $("#num").numberbox('getValue'); 
+	 	var price = $("#price").numberbox('getValue');
+	 	if(!num){$("#dlg").dialog({closed:true}); return false;	}
+	 	var action = $("#action").val();
+	 	if(action==1){
+	 		$.get(projectName+"/GoodsManage/AddToRepository",{"id":node.id,"inventoryQuantity":num,"purchasingPrice":price},function(data){
+		 		if(data&&data.success){
+		 			$("#dg").datagrid('deleteRow',rowIndex);
+		 			$("#dg2").datagrid('reload');
+		 			$("#dlg").dialog({closed:true})
+		 			resetValue()
+		 		}
+	 		})
+	 	}else if(action==2){
+	 		$.get(projectName+"/GoodsManage/UpdateNumOrPrice",{"id":node2.id,"inventoryQuantity":num,"purchasingPrice":price},function(data){
+		 		if(data&&data.success){
+		 			if(num==0){
+		 				$("#dg2").datagrid('deleteRow',rowIndex2);
+		 				$("#dg").datagrid('reload');
+		 				$("#dlg").dialog({closed:true})
+		 				resetValue();
+		 			}else{
+	 					$("#dg2").datagrid('reload');
+	 					$("#dlg").dialog({closed:true})
+	 					resetValue();
+		 			}
+		 		}
+	 		})
+	 	}
+	 }	 
+	 
+	 function deleteStorage(){
+	 	var row = $("#dg2").datagrid('getSelected');
+	 	if(!row){
+	 		$.messager.alert('提示','请先选择要删除的商品')
+	 	}
+	 	$.get(projectName+"/GoodsManage/deleteStorage",{"id":row.id},function(data){
+	 		if(data&&data.success){
+	 			$.messager.show({title:'提示',msg:data.msg})
+	 			$("#dg2").datagrid('reload');
+	 		}
+	 	})
+	 }
+	 
+	 function closeStoreDialog(){
+	 	$("#num").numberbox('setValue',''); 
+	 	$("#price").numberbox('setValue','');
+	 	$("#dlg").dialog({closed:true})
+	 	
+	 }
+	 	
+	 function resetValue(){
+	 	$("#num").numberbox('setValue',''); 
+	 	$("#price").numberbox('setValue','');
+	 }
+	 	 
+	$(function(){
+		$("#dg").datagrid({url:projectName+"/GoodsManage/QueryStockGoods",})
+		$("#dg2").datagrid({url:projectName+"/GoodsManage/QueryInventoryGoods",})
+		
+		$("#s_codeOrName").change(function(){
+			
+				$("#dg").datagrid({
+					url:projectName+"/GoodsManage/QueryStockGoods",
+					queryParams: {"codeOrName":$("#s_codeOrName").val()}
+				})
+		})
+		
+	})	 
+
+</script>
+</head>
+<body class="easyui-layout" style="padding-top: 2px">
+<div data-options="region:'west'" style="width:600px" split=true>
+		<table id="dg" title="商品信息" class="easyui-datagrid" singleSelect="true"
+				   fitColumns="true" pagination="true" rownumbers="true"
+				    fit="true" toolbar="#tb">
+				   <thead>
+				   	<tr>
+				   		<th field="id" width="20" align="center">编号</th>
+				   		<th field="code" width="30" align="center">商品编码</th>
+				   		<th field="name" width="150" align="left">商品名称</th>
+				   		<th field="model" width="50" align="center">型号</th>
+				   		<th field="typeName" width="50" align="center" formatter="formatGoodsTypeName">类别</th>
+				   		<th field="unit" width="30" align="center" >单位</th>
+				   	</tr>
+		   </thead>
+		 </table>
+		 <div id="tb">
+		 	<div style="padding: 3px">
+		 		&nbsp;商品编码或者名称：&nbsp;<input type="text" id="s_codeOrName" size="20" />
+		 		<a href="javascript:openStorageDialog(1)" class="easyui-linkbutton" iconCls="icon-add" plain="true">增加到仓库</a>
+		 	</div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+		 </div>
+</div>
+<div data-options="region:'center'">
+	<table id="dg2" title="期初库存" class="easyui-datagrid" singleSelect="true"
+				   fitColumns="true" pagination="true" rownumbers="true"
+				    fit="true" toolbar="#tb2">
+				   <thead>
+				   	<tr>
+				   		<th field="id" width="20" align="center">编号</th>
+				   		<th field="code" width="30" align="center">商品编码</th>
+				   		<th field="name" width="150" align="left">商品名称</th>
+				   		<th field="model" width="50" align="center">型号</th>
+				   		<th field="typeName" width="50" align="center" formatter="formatGoodsTypeName">类别</th>
+				   		<th field="unit" width="30" align="center" >单位</th>
+				   		<th field="inventoryQuantity" width="30" align="center" >库存数量</th>
+				   		<th field="purchasingPrice" width="30" align="center" formatter="formatPurchasingPrice">成本价</th>
+				   		<th field="amount" width="30" align="center" formatter="formatAmount">库存金额</th>
+				   	</tr>
+		   </thead>
+		 </table>
+		 <div id="tb2">
+		 	<div style="padding: 3px">
+		 		<a href="javascript:openStorageDialog(2)" class="easyui-linkbutton" iconCls="icon-edit" plain="true">修改数量或成本价</a>
+ 				<a href="javascript:deleteStorage()" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>
+		 	</div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+		 </div>
+</div>
+
+<div id="dlg" class="easyui-dialog" style="width:450px;height:250px;padding: 5px 5px"
+   closed="true" buttons="#dlg-buttons" data-options="onClose:function(){resetValue()}">
+   
+   		<fieldset style="border-color: #E7F0FF">
+		    <legend>商品信息</legend>
+		    <form id="fm" method="post">
+			    <table cellspacing="8px">
+			    	<tr>
+			   			<td>商品编号：</td>
+			   			<td>
+			   				<input type="text" id="code" name="code" size="10" readonly="readonly"/>
+			   			</td>
+			   			<td width="60">商品名称：</td>
+			   			<td><input type="text" id="name" name="name" size="10"  readonly="readonly"/></td>
+			   		</tr>
+			   		<tr>
+			   			<td>商品单位：</td>
+			   			<td><input type="text" id="unit" name="unit" size="10"  readonly="readonly"/></td>
+			   			<td align="right">成本价：</td>
+			   			<td><input type="text" id="purchasingPrice" name="purchasingPrice" size="10" readonly="readonly"/></td>
+			   		</tr>
+			    </table>
+		    </form>
+		  </fieldset>
+		  <div style="padding-left: 12px;padding-top: 10px">
+		  	<form id="fm2" method="post">
+			  <table cellspacing="8px">
+			    	<tr>
+			   			<td>期初数量：</td>
+			   			<td>
+			   				<input type="text" id="num" name="num" class="easyui-numberbox"  data-options="min:0" required="true" size="10" />
+			   			</td>
+			   			<td width="60" align="right">成本价：</td>
+			   			<td><input type="text" id="price" name="price" class="easyui-numberbox"  data-options="min:0,precision:2" required="true" size="10"  /></td>
+			   		</tr>
+			    </table>
+			 </form>
+		  </div>
+ </div>
+ 
+ <div id="dlg-buttons">
+ 	<input type="hidden" id="action" >
+ 	<a href="javascript:saveStore()" class="easyui-linkbutton" iconCls="icon-ok">保存</a>
+ 	<a href="javascript:closeStoreDialog()" class="easyui-linkbutton" iconCls="icon-cancel">关闭</a>
+ </div>
+</body>
+</html>

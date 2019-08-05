@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	 <!DOCTYPE mapper  
+		 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	  	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  	<mapper namespace="com.ns.dao.IGoodsManageDao">
+		<select id="SearchCode" resultType="Goods">
+			select * from t_goods order by id DESC limit 1
+		</select>
+		
+		<select id="SearchAllUnit" resultType="GoodsType">
+			select * from t_goodsunit
+		</select>
+		
+		<insert id="AddGoodsUnit">
+			insert into t_goodsunit (name) values (#{name})
+			<selectKey resultType="int" keyProperty="id" order="AFTER">
+				SELECT @@identity;
+			</selectKey>
+		</insert>
+		
+		<delete id="DeleteUnit">
+			delete from t_goodsunit where id=#{id}
+		</delete>
+		
+		<insert id="saveGoods">
+			insert into t_goods (code,min_num,model,name,producer,purchasing_price,remarks,selling_price,unit,type_id,last_purchasing_price)
+				values (#{code},#{minNum},#{model},#{name},#{producer},#{purchasingPrice},#{remarks},#{sellingPrice},#{unit},#{type.id},#{purchasingPrice})
+			<selectKey resultType="int" keyProperty="id" order="AFTER">
+				SELECT @@identity;
+			</selectKey>
+		</insert>
+		
+  		<update id="UpdateGoods">																											   	
+			update t_goods set code=#{code},min_num=#{minNum},model=#{model},name=#{name},producer=#{producer},purchasing_price=#{purchasingPrice},
+					unit=#{unit},type_id=#{type.id},last_purchasing_price=#{purchasingPrice},remarks=#{remarks} where id=#{id}
+		</update>
+		
+		<delete id="DeleteGoods">
+			delete from t_goods where id=#{id}
+		</delete>
+		
+		
+		<!-- 期初库存 -->
+		
+		
+		<select id="QueryStockGoods" resultMap="SelectGoodsMapper">
+			select * from t_goods
+			<choose>
+			    <when test="goods.codeOrName!=null">
+			    	where code=#{goods.codeOrName} or name like '%' #{goods.codeOrName} '%' and inventory_quantity=0 
+			    </when>
+			    <otherwise>
+			    	where inventory_quantity=0
+			    </otherwise>
+		    </choose>
+			limit #{page.start},#{page.rows} 
+		<!-- 	<where>
+				<if test="goods.codeOrName!=null">
+					and code=#{goods.codeOrName} and name like '%' #{goods.codeOrName} '%'
+				</if>
+				<
+			</where>
+			and inventory_quantity=0  -->
+			
+		</select>
+		
+		<resultMap type="Goods" id="SelectGoodsMapper">
+			<id column="id" property="id" />
+			<result column="code" property="code"/>
+			<result column="name" property="name"/>
+			<result column="model" property="model"/>
+			<result column="unit" property="unit"/>
+			<result column="last_purchasing_price" property="lastPurchasingPrice"/>
+			<result column="purchasing_price" property="purchasingPrice"/>
+			<result column="selling_price" property="sellingPrice"/>
+			<result column="inventory_quantity" property="inventoryQuantity"/>
+			<result column="state" property="state"/>
+			<result column="producer" property="producer"/>
+			<result column="remarks" property="remarks"/>
+			<result column="min_num" property="minNum"/>
+			<association property="type" javaType="GoodsType" select="SelectGoodsType" column="type_id" />
+		</resultMap>
+		
+		<select id="SelectGoodsType" resultType="GoodsType">
+			select * from t_goodstype where id=#{type_id}
+		</select>
+		
+		<select id="QueryInventoryGoods" resultMap="SelectGoodsMapper">
+			select * from t_goods where inventory_quantity!=0 limit #{start},#{rows} 
+		</select>
+		
+		<select id="QueryStockGoodsTotal" resultType="int">
+			select count(*) from t_goods where inventory_quantity=0
+		</select>
+
+
+		<select id="QueryInventoryGoodsTotal" resultType="int">
+			select count(*) from t_goods where inventory_quantity!=0
+		</select>
+		
+		
+		<update id="AddToRepository">
+			update t_goods set purchasing_price=#{purchasingPrice},inventory_quantity=#{inventoryQuantity} where id=#{id}
+		</update>
+		
+		<delete id="deleteStorage">
+			delete from t_goods where id=#{id}
+		</delete>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+  	</mapper>

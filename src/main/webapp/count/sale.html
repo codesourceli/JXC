@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>商品销售统计</title>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../js/projectUtil.js"></script>
+<script type="text/javascript" src="../static/js/date.js"></script>
+<script type="text/javascript">
+
+	function formatAmountPayable(val,row){
+		return "￥"+val;
+	}
+	
+	function formatPrice(val,row){
+		return "￥"+val;
+	}
+	
+		function chooseGoodsType(){
+		$("#dlg2").dialog({
+			title:'商品类别选择',
+			closed:false,
+		})
+	}
+	
+	function saveGoodsTypeChoose(){
+		var row = $("#typeTree").tree('getSelected')
+		if(!row){
+			$.messager.alert('提示','请先选择类别','info')
+			return false;
+		}
+		$("#typeId").val(row.id)
+		$("#typeName").val(row.text)
+		$("#dlg2").dialog({closed:true,})
+	}
+	
+	function closeGoodsTypeChooseDialog(){
+		$("#dlg2").dialog("close");
+	}
+	
+	function search(){
+		$("#dg").datagrid('loadData',{total:0,rows:[]})
+		var begin = $("#s_begin").datebox('getValue'); 
+		var end = $("#s_end").datebox('getValue');
+		var typeId =  $("#typeId").val();
+		var codeOrName = $("#codeOrName").val();
+		$.ajax({
+			url:projectName+"/GoodsCount/SaleCount",
+			data:{"begin":begin,"end":end,"typeId":typeId,"codeOrName":codeOrName},
+			success:function(row){
+				console.info(row) 
+			    var salelistgoods=row.salelistgoods;
+			    var customerreturnlistgoods=row.customerreturnlistgoods;
+				for(var i=0;i<customerreturnlistgoods.length;i++){
+					$("#dg").datagrid('appendRow',{
+						number:customerreturnlistgoods[i].customerReturnList.customerReturnNumber,
+						type:'退货',
+						date:customerreturnlistgoods[i].customerReturnList.customerReturnDate,
+						customerName:customerreturnlistgoods[i].customerReturnList.customer.name,
+						code:customerreturnlistgoods[i].code,
+						name:customerreturnlistgoods[i].name,
+						model:customerreturnlistgoods[i].model,
+						typeName:customerreturnlistgoods[i].type.name,
+						unit:customerreturnlistgoods[i].unit,
+						price:customerreturnlistgoods[i].price,
+						num:customerreturnlistgoods[i].num,
+						amount:customerreturnlistgoods[i].total,
+					})
+				}
+				for(var i=0;i<salelistgoods.length;i++){
+					$("#dg").datagrid('appendRow',{
+						number:salelistgoods[i].saleList.saleNumber,
+						type:'进货',
+						date:salelistgoods[i].saleList.saleDate,
+						customerName:salelistgoods[i].saleList.customer.name,
+						code:salelistgoods[i].code,
+						name:salelistgoods[i].name,
+						model:salelistgoods[i].model,
+						typeName:salelistgoods[i].type.name,
+						unit:salelistgoods[i].unit,
+						price:salelistgoods[i].price,
+						num:salelistgoods[i].num,
+						amount:salelistgoods[i].total,
+					})
+				}
+				
+			},
+			error:function(row){},
+		})
+	}
+	
+	
+	$(function(){
+		var curr_time = new Date();
+		var strDate = curr_time.getFullYear()+"-";
+		var month=curr_time.getMonth()+1;
+		if(month.toString().length==1){
+			month="0"+month+"-";
+		}
+		strDate += month;
+		var date = curr_time.getDate();
+		if(date.toString().length==1){
+			date="0"+date;
+		}
+		strDate += date;
+		$("#s_begin").datebox("setValue",  strDate); 
+		$("#s_end").datebox("setValue",  strDate); 
+		
+		$("#typeTree").tree({url:projectName+"/loadGoodsType",})
+		
+		$("#dg").datagrid({
+			onLoadSuccess: function (data) {                
+            //datagrid头部 table 的第一个tr 的td们，即columns的集合                
+            var headerTds = $(".datagrid-header-inner table tr:first-child").children();                
+            //datagrid主体 table 的第一个tr 的td们，即第一个数据行                
+            var bodyTds = $(".datagrid-body table tr:first-child").children();                
+            //循环设置宽度
+            headerTds.each(function (i, obj) {       
+                var headerTd = $(headerTds.get(i));                    
+                var bodyTd = $(bodyTds.get(i));  
+                var headerTdWidth = headerTd.width(); //获取第i个头部td的宽度                  
+                bodyTd.width(headerTdWidth);
+            });
+         },
+	  })
+	})
+	
+	
+</script>
+</head>
+<body  style="margin: 1px">
+
+	<table id="dg" title="商品销售统计" class="easyui-datagrid" fit=true
+	   fitColumns="true"  rownumbers="true" singleSelect="true"
+	    toolbar="#tb" >
+	   <thead>
+	   	<tr>    
+	   		<th field="number" width="50" align="center">单号</th>
+	   	    <th field="type" width="20" align="center">类型</th>
+	   		<th field="date" width="30" align="center">日期</th>
+	   		<th field="customerName" width="70" align="center" >客户</th>
+	   		<th field="code" width="20" align="center" >商品编号</th>
+	   		<th field="name" width="50" align="center" >商品名称</th>
+	   		<th field="model" width="30" align="center" >商品型号</th>
+	   		<th field="typeName" width="30" align="center" >商品类别</th>
+	   		<th field="unit" width="10" align="center" >单位</th>
+	   		<th field="price" width="20" align="right" formatter="formatPrice">单价</th>
+	   		<th field="num" width="20" align="center" >数量</th>
+	   		<th field="amount" width="15" align="right" formatter="formatAmountPayable">总金额</th>
+	   	</tr>
+	   </thead>
+	 </table>
+	 
+	 <div id="tb">
+	 	<div style="padding-bottom: 5px">
+	 		<fieldset style="border-color: #E7F0FF">
+	 			<legend>统计设置</legend>
+	 		&nbsp;&nbsp;&nbsp;往来日期：&nbsp;
+	 		<input id="s_begin" class="easyui-datebox" editable=false  style="width:100px">
+	 	&nbsp;&nbsp;-&nbsp;&nbsp;
+	 		<input id="s_end" class="easyui-datebox" editable=false  style="width:100px">
+		 		&nbsp;商品类别&nbsp;
+	 		<input type="hidden" id="typeId"/>
+	 		<input type="text" id="typeName"  style="width: 90px;" readonly="readonly" onclick="chooseGoodsType()"/>
+	 		&nbsp;商品编码或者名称：&nbsp;<input type="text" id="codeOrName" size="20" onkeydown="if(event.keyCode==13) search()"/>
+	 		&nbsp;&nbsp;<a href="javascript:search()" class="easyui-linkbutton" iconCls="icon-search" plain="true">搜索</a>
+	 		</fieldset>
+	 	</div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+	 </div>
+
+
+
+ <div id="dlg2" class="easyui-dialog" style="width:180px;height:300px;padding: 10px 10px;top: 52px;left: 80px"
+   closed="true" buttons="#dlg-buttons2">
+   
+   	<ul id="typeTree" class="easyui-tree"></ul>
+   
+  </div>
+ 
+ <div id="dlg-buttons2">
+ 	<a href="javascript:saveGoodsTypeChoose()" class="easyui-linkbutton" iconCls="icon-ok" plain="true">选择</a>
+ 	<a href="javascript:closeGoodsTypeChooseDialog()" class="easyui-linkbutton" iconCls="icon-cancel" plain="true">关闭</a>
+ </div>
+
+</body>
+</html>
